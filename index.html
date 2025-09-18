@@ -1,0 +1,270 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>GreenConsultant</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+  <script src="https://unpkg.com/framer-motion/dist/framer-motion.umd.js"></script>
+  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+</head>
+<body class="antialiased">
+  <div id="root"></div>
+  <script type="text/babel">
+    const { useEffect, useMemo, useRef, useState } = React;
+    const { motion } = window.framerMotion;
+
+    function useCredits(initial = 5) {
+      const [credits, setCredits] = useState(initial);
+      const spendCredit = () => setCredits(c => (c > 0 ? c - 1 : 0));
+      const resetCredits = () => setCredits(initial);
+      return { credits, spendCredit, resetCredits };
+    }
+
+    function Stars({ value = 5 }) {
+      const v = Math.max(0, Math.min(5, Math.floor(Number(value) || 0)));
+      return (
+        <div className="flex items-center gap-1">
+          {Array.from({ length: 5 }, (_, i) => (
+            <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
+                 className={(i < v ? "text-yellow-500" : "text-emerald-200") + " h-4 w-4 fill-current"}>
+              <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21z" />
+            </svg>
+          ))}
+        </div>
+      );
+    }
+
+    const testimonialsSeed = [
+      { name: "Amira K.", role: "Head of Sustainability", company: "AeroNova", quote: "Cut lifecycle assessment time by 60%.", rating: 5, metric: "-28% CO₂e", date: "Mar 2025" },
+      { name: "Daniel R.", role: "Product Manager", company: "VoltEdge", quote: "Stress-tested three design variants in minutes.", rating: 5, metric: "3x faster sprints", date: "Feb 2025" },
+      { name: "Sophia L.", role: "Operations Director", company: "NorthSea Components", quote: "Moved from opinion-driven to data-driven in a week.", rating: 4, metric: "-11% unit cost YoY", date: "Jan 2025" },
+    ];
+
+    function useAutoShuffle(items, intervalMs = 3500) {
+      const [list, setList] = useState(items);
+      useEffect(() => {
+        const id = setInterval(() => setList(p => [...p.slice(1), p[0]]), intervalMs);
+        return () => clearInterval(id);
+      }, [intervalMs]);
+      return list;
+    }
+
+    function SignupModal({ open, onClose, onSignup, credits }) {
+      if (!open) return null;
+      return (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
+          <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
+            <div className="px-6 py-5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white">
+              <h3 className="text-lg font-semibold">Create your account</h3>
+              <p className="text-sm text-emerald-100">Every new forum account starts with <strong>5 free uses</strong>.</p>
+            </div>
+            <div className="p-6 space-y-4">
+              <label className="text-xs font-medium text-emerald-800">Full name</label>
+              <input placeholder="e.g., Amira Khalil" className="w-full rounded-lg p-2 border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              <label className="text-xs font-medium text-emerald-800">Work email</label>
+              <input type="email" placeholder="name@company.com" className="w-full rounded-lg p-2 border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
+              <label className="text-xs font-medium text-emerald-800">Primary use case</label>
+              <select className="w-full rounded-lg p-2 border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
+                <option>Net-zero roadmap</option>
+                <option>Product design & circularity</option>
+                <option>Operations & supply chain</option>
+                <option>Management & finance</option>
+              </select>
+              <button onClick={onSignup} className="w-full bg-emerald-600 text-white py-2 rounded-lg font-semibold hover:bg-emerald-700">Sign Up & Get 5 Credits</button>
+              <div className="text-center text-xs text-emerald-700">Remaining credits: {credits}</div>
+              <button onClick={onClose} className="mx-auto block text-xs text-emerald-700/80 hover:text-emerald-700">Maybe later</button>
+            </div>
+          </div>
+        </div>
+      );
+    }
+
+    function GreenConsultant() {
+      const [input, setInput] = useState("");
+      const [messages, setMessages] = useState([]);
+      const [isLoading, setIsLoading] = useState(false);
+      const [error, setError] = useState("");
+      const { credits, spendCredit, resetCredits } = useCredits(5);
+      const [showSignup, setShowSignup] = useState(true);
+      const containerRef = useRef(null);
+      const testimonials = useAutoShuffle(testimonialsSeed, 3500);
+
+      useEffect(() => {
+        if (containerRef.current) containerRef.current.scrollTop = containerRef.current.scrollHeight;
+      }, [messages]);
+
+      const systemPrompt = "You are GreenConsultant, a rigorous engineering and business advisor.";
+
+      async function chatWithOllama(userText) {
+        if (credits <= 0) {
+          setError("Out of credits. Please sign up or top up.");
+          setShowSignup(true);
+          return;
+        }
+        spendCredit();
+        setIsLoading(true);
+        setError("");
+        setMessages(prev => [...prev, { role: "user", content: userText }, { role: "assistant", content: "" }]);
+        try {
+          const response = await fetch("http://localhost:11435/api/chat", {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({
+              model: "qwen2.5:3b-instruct",
+              stream: true,
+              messages: [
+                { role: "system", content: systemPrompt },
+                ...messages.map(m => ({ role: m.role, content: m.content })),
+                { role: "user", content: userText },
+              ],
+            }),
+          });
+          if (!response.ok || !response.body) throw new Error("Ollama error: " + response.status);
+
+          const reader = response.body.getReader();
+          const decoder = new TextDecoder();
+          let assistantText = "";
+          while (true) {
+            const { value, done } = await reader.read();
+            if (done) break;
+            const chunk = decoder.decode(value, { stream: true });
+            for (const line of chunk.split("\n")) {
+              if (!line.trim()) continue;
+              try {
+                const json = JSON.parse(line);
+                if (json.message && json.message.content) {
+                  assistantText += json.message.content;
+                  setMessages(prev => {
+                    const copy = [...prev];
+                    copy[copy.length - 1] = { role: "assistant", content: assistantText };
+                    return copy;
+                  });
+                }
+              } catch {}
+            }
+          }
+        } catch (e) {
+          setError(e.message || "Error contacting Ollama.");
+        } finally {
+          setIsLoading(false);
+        }
+      }
+
+      function handleSubmit(e) {
+        e.preventDefault();
+        const q = input.trim();
+        if (!q) return;
+        setInput("");
+        chatWithOllama(q);
+      }
+
+      return (
+        <div className="min-h-screen w-full bg-gradient-to-b from-emerald-900 via-emerald-800 to-gray-50 text-white">
+          <header className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
+                <span className="text-xl font-bold">GC</span>
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold tracking-wide">GreenConsultant</h1>
+                <p className="text-xs text-emerald-200/90">AI Strategy & Engineering Advisor</p>
+              </div>
+            </div>
+            <div className="flex items-center gap-3">
+              <button onClick={() => setShowSignup(true)} className="text-sm font-medium px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition">
+                Get 5 Free Credits
+              </button>
+            </div>
+          </header>
+
+          <section className="max-w-4xl mx-auto px-4 pt-6 pb-12 text-center">
+            <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
+              className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 to-emerald-500">
+              Make smarter decisions for your business
+            </motion.h2>
+            <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0, delay: 0.2 }} transition={{ duration: 0.6 }}
+              className="mt-4 text-emerald-100/95 text-lg leading-relaxed max-w-3xl mx-auto">
+              Leverage <span className="font-semibold text-emerald-200">AI-driven insights</span> to accelerate sustainability, strengthen product design, streamline management, and unlock profitable pathways to net-zero.
+            </motion.p>
+          </section>
+
+          <section id="chat" className="relative bg-gradient-to-br from-white via-emerald-50 to-emerald-100 text-emerald-950 rounded-3xl shadow-2xl overflow-hidden max-w-4xl mx-auto">
+            <div className="relative max-w-6xl mx-auto px-4 py-12">
+              <div className="mb-6 flex items-center justify-between">
+                <h3 className="text-2xl font-bold">Your AI Consultant</h3>
+                <div className="text-xs text-emerald-700">Credits left: {credits}</div>
+              </div>
+
+              <div ref={containerRef} className="h-[320px] overflow-y-auto rounded-2xl border border-emerald-200 p-4 bg-white/70 shadow-inner relative">
+                {messages.length === 0 && (
+                  <div className="absolute inset-0 pointer-events-none flex flex-col justify-center items-center text-center text-emerald-900 text-xs md:text-sm font-medium space-y-2 opacity-25 select-none">
+                    <p>Example: "What’s the fastest pathway to SBTi alignment for a 50k-tCO₂e portfolio?"</p>
+                    <p>Example: "Compare capex vs opex for electrifying our UK fleet by 2030."</p>
+                    <p>Example: "Give me a circular design strategy for a consumer electronics line."</p>
+                  </div>
+                )}
+                <div className="space-y-4">
+                  {messages.map((m, idx) => (
+                    <div key={idx} className="flex">
+                      <div className={m.role === "user"
+                        ? "ml-auto max-w-[85%] rounded-2xl bg-emerald-700 text-white px-4 py-3 shadow-lg"
+                        : "mr-auto max-w-[85%] rounded-2xl bg-emerald-100 text-emerald-900 px-4 py-3 shadow"}>
+                        <p className="whitespace-pre-wrap leading-relaxed text-sm md:text-[15px]">{m.content}</p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              <form onSubmit={handleSubmit} className="mt-4 flex gap-3">
+                <textarea
+                  value={input}
+                  onChange={(e) => setInput(e.target.value)}
+                  placeholder="Ask your question here..."
+                  className="flex-1 min-h-[56px] rounded-2xl border border-emerald-300 p-3"
+                  disabled={credits <= 0}
+                />
+                <button type="submit" disabled={isLoading || credits <= 0} className="px-5 py-3 rounded-2xl bg-emerald-700 text-white font-semibold shadow disabled:opacity-60">
+                  {isLoading ? "Thinking…" : credits <= 0 ? "Out of credits" : "Send"}
+                </button>
+              </form>
+              {error && <div className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl p-3">{error}</div>}
+            </div>
+          </section>
+
+          <section id="testimonials" className="bg-gray-50 text-emerald-950">
+            <div className="max-w-6xl mx-auto px-4 py-14">
+              <h3 className="text-2xl font-bold mb-6">Client Testimonials</h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+                {useAutoShuffle(testimonialsSeed, 3500).map((t, i) => (
+                  <motion.article key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
+                    className="rounded-2xl border border-emerald-100 bg-white p-5 shadow">
+                    <div className="font-semibold text-emerald-900">{t.name}</div>
+                    <div className="text-sm text-emerald-700/90">{t.role}{t.company ? `, ${t.company}` : ''}</div>
+                    <Stars value={t.rating} />
+                    <p className="mt-3 text-[15px]">“{t.quote}”</p>
+                    <span className="inline-block mt-2 text-xs px-2 py-1 bg-emerald-50 text-emerald-800 rounded-full">{t.metric}</span>
+                  </motion.article>
+                ))}
+              </div>
+            </div>
+          </section>
+
+          <SignupModal
+            open={showSignup}
+            onClose={() => setShowSignup(false)}
+            onSignup={() => { resetCredits(); setShowSignup(false); }}
+            credits={credits}
+          />
+        </div>
+      );
+    }
+
+    ReactDOM.createRoot(document.getElementById("root")).render(<GreenConsultant />);
+  </script>
+</body>
+</html>
