@@ -1,336 +1,293 @@
 <!doctype html>
 <html lang="en">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta charset="utf-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1"/>
   <title>GreenConsultant</title>
-  <!-- Tailwind (CDN) -->
-  <script src="https://cdn.tailwindcss.com"></script>
-  <!-- React + ReactDOM (UMD) -->
-  <script crossorigin src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-  <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
-  <!-- Framer Motion (UMD) -->
-  <script src="https://unpkg.com/framer-motion/dist/framer-motion.umd.js"></script>
-  <!-- Babel (so JSX works in-browser) -->
-  <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+  <style>
+    :root{
+      --emerald-50:#ecfdf5;--emerald-100:#d1fae5;--emerald-200:#a7f3d0;--emerald-300:#6ee7b7;
+      --emerald-500:#10b981;--emerald-600:#059669;--emerald-700:#047857;--emerald-800:#065f46;--emerald-900:#064e3b;
+      --ink:#0b2e22;--paper:#ffffff;--muted:#114c3a;--shadow:0 8px 30px rgba(0,0,0,.15)
+    }
+    *{box-sizing:border-box}
+    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:
+      linear-gradient(to bottom,var(--emerald-900),var(--emerald-800),#f6f8f7);color:#fff}
+    a{color:inherit}
+    .container{max-width:1100px;margin:0 auto;padding:20px}
+    header{display:flex;justify-content:space-between;align-items:center;padding:16px 0}
+    .brand{display:flex;align-items:center;gap:12px}
+    .logo{width:44px;height:44px;border-radius:12px;background:rgba(255,255,255,.12);display:flex;align-items:center;justify-content:center;font-weight:800}
+    .cta{background:rgba(255,255,255,.12);border:0;border-radius:12px;padding:10px 14px;color:#fff;font-weight:600;cursor:pointer}
+    .cta:hover{background:rgba(255,255,255,.2)}
+    .hero{text-align:center;padding:36px 8px 24px}
+    .hero h1{font-size:clamp(28px,4vw,44px);margin:0;background:linear-gradient(90deg,var(--emerald-300),var(--emerald-500));
+      -webkit-background-clip:text;background-clip:text;color:transparent;font-weight:900}
+    .hero p{max-width:820px;margin:14px auto 0;color:#eafff5;font-size:18px;line-height:1.6}
+    .card{background:linear-gradient(135deg,#fff,#f8fcfa);color:var(--ink);border-radius:22px;box-shadow:var(--shadow)}
+    .pad{padding:24px}
+    /* Chat */
+    #chat{max-width:900px;margin:0 auto}
+    .meta{display:flex;justify-content:space-between;align-items:center;margin-bottom:12px}
+    .meta .credits{font-size:12px;color:#2b6a57}
+    .messages{height:360px;overflow-y:auto;border:1px solid #cbe3d7;border-radius:16px;padding:12px;background:#ffffff;position:relative}
+    .placeholder{position:absolute;inset:0;display:flex;flex-direction:column;justify-content:center;align-items:center;
+      color:#0e3c2e;opacity:.25;text-align:center;padding:0 20px;font-weight:600;pointer-events:none}
+    .bubble{max-width:85%;padding:10px 12px;border-radius:14px;margin:6px 0;white-space:pre-wrap;line-height:1.45;font-size:15px}
+    .user{margin-left:auto;background:var(--emerald-700);color:#fff;box-shadow:0 4px 16px rgba(0,0,0,.15)}
+    .assistant{margin-right:auto;background:#eef7f2;color:var(--ink);border:1px solid #cbe3d7}
+    .row{display:flex;gap:10px;margin-top:12px}
+    textarea{flex:1;min-height:64px;border-radius:14px;border:1px solid #cbe3d7;padding:10px;resize:vertical}
+    button.send{border:0;border-radius:14px;padding:12px 18px;font-weight:700;background:var(--emerald-700);color:#fff;cursor:pointer}
+    button.send[disabled]{opacity:.6;cursor:not-allowed}
+    .err{margin-top:8px;color:#b00020;background:#fee;border:1px solid #fbb;padding:8px;border-radius:10px;font-size:13px}
+    /* Capabilities */
+    .section{padding:52px 0}
+    .section h2{font-size:24px;text-align:center;margin:0 0 8px}
+    .section p.lead{color:#eafff5;text-align:center;margin:0 0 24px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(230px,1fr));gap:14px}
+    .tile{background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.25);backdrop-filter:blur(6px);color:#fff;border-radius:16px;padding:16px}
+    .tile .t{font-weight:700}
+    .tile .d{font-size:14px;color:#e9fff7;margin-top:6px}
+    /* Testimonials */
+    .light{background:#f7faf8;color:var(--ink)}
+    .cards{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:14px}
+    .testi{border:1px solid #e2f1ea;background:#fff;border-radius:16px;padding:16px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+    .stars{display:flex;gap:4px;margin:6px 0}
+    .chip{display:inline-block;margin-top:6px;font-size:12px;padding:4px 8px;border-radius:999px;background:#eafaf2;color:#114c3a;border:1px solid #cdeadc}
+    /* Modal */
+    .overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);backdrop-filter:blur(3px);display:none;align-items:center;justify-content:center;z-index:50}
+    .modal{width:100%;max-width:520px;background:#fff;border-radius:18px;overflow:hidden;box-shadow:var(--shadow);color:var(--ink)}
+    .modal .hd{background:linear-gradient(90deg,var(--emerald-600),var(--emerald-500));color:#fff;padding:16px 18px}
+    .modal .bd{padding:18px}
+    .form label{font-size:12px;color:#0d3d2e;margin-bottom:4px}
+    .form input,.form select{width:100%;padding:10px;border:1px solid #cfe9de;border-radius:10px;margin-bottom:10px}
+    .btn{display:inline-block;width:100%;text-align:center;background:var(--emerald-700);color:#fff;border:0;border-radius:12px;padding:10px 14px;font-weight:700;cursor:pointer}
+    .muted{color:#0d3d2e;font-size:12px;text-align:center;margin-top:6px}
+    .link{display:block;margin:6px auto 0;text-align:center;font-size:12px;color:#0d6a52;cursor:pointer}
+  </style>
 </head>
-<body class="antialiased">
-  <div id="root"></div>
-
-  <script type="text/babel">
-    const { useEffect, useMemo, useRef, useState } = React;
-    const { motion } = window.framerMotion;
-
-    // --- CONFIG: change if you started Ollama on 11435, etc. ---
-    const OLLAMA_BASE = "http://localhost:11434";
-
-    /***********************
-     * Credits logic
-     ***********************/
-    function useCredits(initial = 5) {
-      const [credits, setCredits] = useState(initial);
-      const spendCredit = () => setCredits(c => (c > 0 ? c - 1 : 0));
-      const resetCredits = () => setCredits(initial);
-      return { credits, spendCredit, resetCredits };
-    }
-
-    /***********************
-     * Stars util + component
-     ***********************/
-    function getFilledStars(value) {
-      const v = Math.max(0, Math.min(5, Math.floor(Number(value) || 0)));
-      return new Array(5).fill(false).map((_, i) => i < v);
-    }
-    function Stars({ value = 5 }) {
-      const filled = getFilledStars(value);
-      return (
-        <div className="flex items-center gap-1">
-          {filled.map((isFilled, i) => (
-            <svg key={i} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24"
-                 className={(isFilled ? "text-yellow-500" : "text-emerald-200") + " h-4 w-4 fill-current"}>
-              <path d="M12 17.27 18.18 21l-1.64-7.03L22 9.24l-7.19-.62L12 2 9.19 8.62 2 9.24l5.46 4.73L5.82 21z" />
-            </svg>
-          ))}
+<body>
+  <div class="container">
+    <!-- HEADER -->
+    <header>
+      <div class="brand">
+        <div class="logo">GC</div>
+        <div>
+          <div style="font-weight:700">GreenConsultant</div>
+          <div style="font-size:12px;opacity:.9">AI Strategy & Engineering Advisor</div>
         </div>
-      );
-    }
+      </div>
+      <button id="openSignup" class="cta">Get 5 Free Credits</button>
+    </header>
 
-    /***********************
-     * Testimonials seed
-     ***********************/
-    const testimonialsSeed = [
-      { name: "Amira K.", role: "Head of Sustainability", company: "AeroNova", quote: "Cut lifecycle assessment time by 60%.", rating: 5, metric: "-28% CO₂e", date: "Mar 2025" },
-      { name: "Daniel R.", role: "Product Manager", company: "VoltEdge", quote: "Stress-tested three design variants in minutes.", rating: 5, metric: "3x faster sprints", date: "Feb 2025" },
-      { name: "Sophia L.", role: "Operations Director", company: "NorthSea Components", quote: "Moved from opinion-driven to data-driven in a week.", rating: 4, metric: "-11% unit cost YoY", date: "Jan 2025" },
+    <!-- HERO -->
+    <section class="hero">
+      <h1>Make smarter decisions for your business</h1>
+      <p>Leverage <b>AI-driven insights</b> to accelerate sustainability, strengthen product design, streamline management, and unlock profitable pathways to net-zero. <b>GreenConsultant</b> synthesizes strategy and engineering intelligence into clear, defensible actions you can execute today.</p>
+    </section>
+
+    <!-- CHAT -->
+    <section id="chat" class="card pad">
+      <div class="meta">
+        <h3 style="margin:0;font-size:22px">Your AI Consultant</h3>
+        <div class="credits">Credits left: <span id="credits">5</span></div>
+      </div>
+
+      <div id="messages" class="messages">
+        <div id="placeholder" class="placeholder">
+          <div>Example: “What’s the fastest pathway to SBTi alignment for a 50k-tCO₂e portfolio?”</div>
+          <div>Example: “Compare capex vs opex for electrifying our UK fleet by 2030.”</div>
+          <div>Example: “Give me a circular design strategy for a consumer electronics line.”</div>
+        </div>
+      </div>
+
+      <form id="form" class="row">
+        <textarea id="input" placeholder="Ask your question here…"></textarea>
+        <button id="send" class="send" type="submit">Send</button>
+      </form>
+      <div id="error" class="err" style="display:none"></div>
+      <small style="display:block;margin-top:6px;color:#2a7c63">Your browser will call <code>http://localhost</code> on <i>your</i> machine. Keep Ollama running with CORS.</small>
+    </section>
+
+    <!-- CAPABILITIES -->
+    <section class="section">
+      <h2>What you can do with GreenConsultant</h2>
+      <p class="lead">From boardroom strategy to engineering execution—plug in, iterate, and ship.</p>
+      <div class="grid">
+        <div class="tile"><div class="t">Net-zero strategy</div><div class="d">SBTi-aligned targets, MAC curves, carbon pricing scenarios.</div></div>
+        <div class="tile"><div class="t">Product design</div><div class="d">DfMA, material swaps, lifecycle & recyclability heuristics.</div></div>
+        <div class="tile"><div class="t">Operations</div><div class="d">Energy audits, fleet electrification, heat pumps & CHP.</div></div>
+        <div class="tile"><div class="t">Supply chain</div><div class="d">Scope 3 mapping, vendor screening, logistics optimization.</div></div>
+        <div class="tile"><div class="t">Financials</div><div class="d">Capex/opex trade-offs, IRR/NPV, payback with sensitivity.</div></div>
+        <div class="tile"><div class="t">Risk & governance</div><div class="d">Registers, mitigations, KPIs, and program cadences.</div></div>
+      </div>
+    </section>
+
+    <!-- TESTIMONIALS -->
+    <section class="section light card pad" style="margin-bottom:60px">
+      <h2 style="text-align:left;margin-bottom:16px">Client Testimonials</h2>
+      <div id="testiCards" class="cards"></div>
+    </section>
+  </div>
+
+  <!-- SIGNUP MODAL -->
+  <div id="signup" class="overlay" role="dialog" aria-modal="true">
+    <div class="modal">
+      <div class="hd"><h3 style="margin:0">Create your account</h3><div style="font-size:13px;opacity:.9">Every new forum account starts with <b>5 free uses</b>.</div></div>
+      <div class="bd">
+        <div class="form">
+          <label>Full name</label>
+          <input placeholder="e.g., Amira Khalil"/>
+          <label>Work email</label>
+          <input type="email" placeholder="name@company.com"/>
+          <label>Primary use case</label>
+          <select>
+            <option>Net-zero roadmap</option>
+            <option>Product design & circularity</option>
+            <option>Operations & supply chain</option>
+            <option>Management & finance</option>
+          </select>
+        </div>
+        <button id="signupBtn" class="btn">Sign Up & Get 5 Credits</button>
+        <div class="muted">Remaining credits: <span id="creditsModal">5</span></div>
+        <div id="closeModal" class="link">Maybe later</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // -------- CONFIG --------
+    const OLLAMA_BASE = "http://localhost:11434"; // change to 11435 if you started on that port
+    const MODEL = "qwen2.5:3b-instruct";
+    const SYSTEM_PROMPT = "You are GreenConsultant, a rigorous engineering and business advisor.";
+
+    // -------- STATE --------
+    let credits = 5;
+    const creditsEl = document.getElementById('credits');
+    const creditsModalEl = document.getElementById('creditsModal');
+    const overlay = document.getElementById('signup');
+
+    function setCredits(v){
+      credits = v; creditsEl.textContent = v; creditsModalEl.textContent = v;
+    }
+    setCredits(5);
+
+    // -------- TESTIMONIALS --------
+    const testimonials = [
+      { name:"Amira K.", role:"Head of Sustainability", company:"AeroNova", quote:"Cut lifecycle assessment time by 60%.", rating:5, metric:"-28% CO₂e" },
+      { name:"Daniel R.", role:"Product Manager", company:"VoltEdge", quote:"Stress-tested three design variants in minutes.", rating:5, metric:"3x faster sprints" },
+      { name:"Sophia L.", role:"Operations Director", company:"NorthSea Components", quote:"Moved from opinion-driven to data-driven in a week.", rating:4, metric:"-11% unit cost YoY" }
     ];
+    const testiRoot = document.getElementById('testiCards');
+    function starRow(n){
+      const c=document.createElement('div'); c.className='stars';
+      for(let i=0;i<5;i++){const s=document.createElement('span'); s.innerHTML=i<n?'★':'☆'; s.style.color=i<n?'#f59e0b':'#cdeadc'; c.appendChild(s);}
+      return c;
+    }
+    function renderTestimonials(list){
+      testiRoot.innerHTML='';
+      list.forEach(t=>{
+        const card=document.createElement('article'); card.className='testi';
+        const name=document.createElement('div'); name.style.fontWeight='700'; name.textContent=t.name; card.appendChild(name);
+        const role=document.createElement('div'); role.style.fontSize='13px'; role.style.opacity='.85'; role.textContent=t.role+(t.company?`, ${t.company}`:''); card.appendChild(role);
+        card.appendChild(starRow(t.rating));
+        const q=document.createElement('p'); q.style.margin='8px 0 0'; q.textContent='“'+t.quote+'”'; card.appendChild(q);
+        const chip=document.createElement('span'); chip.className='chip'; chip.textContent=t.metric; card.appendChild(chip);
+        testiRoot.appendChild(card);
+      });
+    }
+    renderTestimonials(testimonials);
+    setInterval(()=>{ testimonials.push(testimonials.shift()); renderTestimonials(testimonials); }, 3500);
 
-    function useAutoShuffle(items, intervalMs = 3500) {
-      const [list, setList] = useState(items);
-      useEffect(() => {
-        const id = setInterval(() => {
-          setList(prev => {
-            const copy = [...prev];
-            const [first, ...rest] = copy;
-            return [...rest, first];
-          });
-        }, intervalMs);
-        return () => clearInterval(id);
-      }, [intervalMs]);
-      return list;
+    // -------- CHAT --------
+    const messagesEl = document.getElementById('messages');
+    const placeholderEl = document.getElementById('placeholder');
+    const form = document.getElementById('form');
+    const input = document.getElementById('input');
+    const errorBox = document.getElementById('error');
+
+    function addBubble(role, text){
+      if(placeholderEl) placeholderEl.style.display='none';
+      const div=document.createElement('div');
+      div.className='bubble ' + (role==='user' ? 'user' : 'assistant');
+      div.textContent=text || '';
+      messagesEl.appendChild(div);
+      messagesEl.scrollTop = messagesEl.scrollHeight;
+      return div;
     }
 
-    /***********************
-     * Modal (Sign-up / Credits)
-     ***********************/
-    function SignupModal({ open, onClose, onSignup, credits }) {
-      if (!open) return null;
-      return (
-        <div className="fixed inset-0 z-50 flex items-center justify-center">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" onClick={onClose} />
-          <div className="relative z-10 w-full max-w-md bg-white rounded-2xl shadow-2xl overflow-hidden">
-            <div className="px-6 py-5 bg-gradient-to-r from-emerald-600 to-emerald-500 text-white">
-              <h3 className="text-lg font-semibold">Create your account</h3>
-              <p className="text-sm text-emerald-100">Every new forum account starts with <strong>5 free uses</strong>.</p>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="grid grid-cols-1 gap-3">
-                <label className="text-xs font-medium text-emerald-800" htmlFor="name">Full name</label>
-                <input id="name" name="name" placeholder="e.g., Amira Khalil" className="w-full rounded-lg p-2 border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                <label className="text-xs font-medium text-emerald-800" htmlFor="email">Work email</label>
-                <input id="email" name="email" type="email" placeholder="name@company.com" className="w-full rounded-lg p-2 border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500" />
-              </div>
-              <div className="grid grid-cols-1 gap-3">
-                <label className="text-xs font-medium text-emerald-800" htmlFor="usecase">Primary use case</label>
-                <select id="usecase" name="usecase" className="w-full rounded-lg p-2 border border-emerald-200 focus:outline-none focus:ring-2 focus:ring-emerald-500">
-                  <option>Net-zero roadmap</option>
-                  <option>Product design & circularity</option>
-                  <option>Operations & supply chain</option>
-                  <option>Management & finance</option>
-                </select>
-              </div>
-              <button onClick={onSignup} className="w-full bg-emerald-600 text-white py-2 rounded-lg font-semibold hover:bg-emerald-700">Sign Up & Get 5 Credits</button>
-              <div className="text-center text-xs text-emerald-700">Remaining credits: {credits}</div>
-              <button onClick={onClose} className="mx-auto block text-xs text-emerald-700/80 hover:text-emerald-700">Maybe later</button>
-            </div>
-          </div>
-        </div>
-      );
-    }
+    async function streamChat(userText){
+      if(credits<=0){ errorBox.textContent='Out of credits. Please sign up or top up.'; errorBox.style.display='block'; openModal(); return; }
+      setCredits(credits-1);
+      errorBox.style.display='none';
+      addBubble('user', userText);
+      const asst = addBubble('assistant','');
 
-    /***********************
-     * Main component (mirrors your uploaded JSX design) 
-     ***********************/
-    function GreenConsultant() {
-      const [input, setInput] = useState("");
-      const [messages, setMessages] = useState([]);
-      const [isLoading, setIsLoading] = useState(false);
-      const [error, setError] = useState("");
-      const { credits, spendCredit, resetCredits } = useCredits(5);
-      const [showSignup, setShowSignup] = useState(true);
-      const containerRef = useRef(null);
-      const testimonials = useAutoShuffle(testimonialsSeed, 3500);
+      try{
+        const res = await fetch(OLLAMA_BASE + "/api/chat", {
+          method:"POST",
+          headers:{ "Content-Type":"application/json" },
+          body: JSON.stringify({
+            model: MODEL,
+            stream: true,
+            messages:[
+              { role:"system", content: SYSTEM_PROMPT },
+              { role:"user", content: userText }
+            ]
+          })
+        });
+        if(!res.ok || !res.body) throw new Error("Ollama HTTP " + res.status + " — is Ollama running with CORS?");
 
-      useEffect(() => {
-        if (containerRef.current) containerRef.current.scrollTop = containerRef.current.scrollHeight;
-      }, [messages]);
+        const reader = res.body.getReader();
+        const decoder = new TextDecoder();
+        let acc = "";
 
-      const systemPrompt = useMemo(() => "You are GreenConsultant, a rigorous engineering and business advisor.", []);
-
-      async function chatWithOllama(userText) {
-        if (credits <= 0) {
-          setError("Out of credits. Please sign up or top up.");
-          setShowSignup(true);
-          return;
-        }
-        spendCredit();
-        setIsLoading(true);
-        setError("");
-        setMessages(prev => [...prev, { role: "user", content: userText }, { role: "assistant", content: "" }]);
-        try {
-          const response = await fetch(OLLAMA_BASE + "/api/chat", {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({
-              model: "qwen2.5:3b-instruct",
-              stream: true,
-              messages: [
-                { role: "system", content: systemPrompt },
-                ...messages.map(m => ({ role: m.role, content: m.content })),
-                { role: "user", content: userText },
-              ],
-            }),
-          });
-          if (!response.ok || !response.body) throw new Error("Ollama error: " + response.status);
-
-          const reader = response.body.getReader();
-          const decoder = new TextDecoder();
-          let assistantText = "";
-          while (true) {
-            const { value, done } = await reader.read();
-            if (done) break;
-            const chunk = decoder.decode(value, { stream: true });
-            for (const line of chunk.split("\n")) {
-              if (!line.trim()) continue;
-              try {
-                const json = JSON.parse(line);
-                if (json.message && json.message.content) {
-                  assistantText += json.message.content;
-                  setMessages(prev => {
-                    const copy = [...prev];
-                    copy[copy.length - 1] = { role: "assistant", content: assistantText };
-                    return copy;
-                  });
-                }
-              } catch {}
-            }
+        while(true){
+          const {value, done} = await reader.read();
+          if(done) break;
+          const chunk = decoder.decode(value, {stream:true});
+          for(const line of chunk.split("\n")){
+            const t=line.trim();
+            if(!t) continue;
+            try{
+              const json = JSON.parse(t);
+              if(json.message && json.message.content){
+                acc += json.message.content;
+                asst.textContent = acc;
+                messagesEl.scrollTop = messagesEl.scrollHeight;
+              }
+            }catch(e){ /* ignore non-JSON lines */ }
           }
-        } catch (e) {
-          setError(e.message || "Error contacting Ollama.");
-        } finally {
-          setIsLoading(false);
         }
+      }catch(e){
+        errorBox.textContent = (e && e.message ? e.message : String(e)) + " — Confirm OLLAMA_ORIGINS=\"*\" and the port.";
+        errorBox.style.display='block';
       }
-
-      function handleSubmit(e) {
-        e.preventDefault();
-        const q = input.trim();
-        if (!q) return;
-        setInput("");
-        chatWithOllama(q);
-      }
-
-      return (
-        <div className="min-h-screen w-full bg-gradient-to-b from-emerald-900 via-emerald-800 to-gray-50 text-white">
-          {/* HEADER */}
-          <header className="max-w-6xl mx-auto px-4 py-6 flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className="h-10 w-10 rounded-xl bg-white/10 backdrop-blur flex items-center justify-center">
-                <span className="text-xl font-bold">GC</span>
-              </div>
-              <div>
-                <h1 className="text-lg font-semibold tracking-wide">GreenConsultant</h1>
-                <p className="text-xs text-emerald-200/90">AI Strategy & Engineering Advisor</p>
-              </div>
-            </div>
-            <div className="flex items-center gap-3">
-              <button onClick={() => setShowSignup(true)} className="text-sm font-medium px-4 py-2 rounded-xl bg-white/10 hover:bg-white/20 transition">
-                Get 5 Free Credits
-              </button>
-            </div>
-          </header>
-
-          {/* HERO */}
-          <section className="max-w-4xl mx-auto px-4 pt-6 pb-12 text-center">
-            <motion.h2 initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.6 }}
-              className="text-4xl md:text-5xl font-extrabold tracking-tight bg-clip-text text-transparent bg-gradient-to-r from-emerald-300 to-emerald-500">
-              Make smarter decisions for your business
-            </motion.h2>
-            <motion.p initial={{ opacity: 0, y: 20 }} whileInView={{ opacity: 1, y: 0, delay: 0.2 }} transition={{ duration: 0.6 }}
-              className="mt-4 text-emerald-100/95 text-lg leading-relaxed max-w-3xl mx-auto">
-              Leverage <span className="font-semibold text-emerald-200">AI-driven insights</span> to accelerate sustainability, strengthen product design, streamline management, and unlock profitable pathways to net-zero. <span className="font-semibold text-emerald-200">GreenConsultant</span> synthesizes strategy and engineering intelligence into clear, defensible actions you can execute today.
-            </motion.p>
-          </section>
-
-          {/* CHAT */}
-          <section id="chat" className="relative bg-gradient-to-br from-white via-emerald-50 to-emerald-100 text-emerald-950 rounded-3xl shadow-2xl overflow-hidden max-w-4xl mx-auto">
-            <div className="relative max-w-6xl mx-auto px-4 py-12">
-              <div className="mb-6 flex items-center justify-between">
-                <h3 className="text-2xl font-bold">Your AI Consultant</h3>
-                <div className="text-xs text-emerald-700">Credits left: {credits}</div>
-              </div>
-
-              <div ref={containerRef} className="h-[320px] overflow-y-auto rounded-2xl border border-emerald-200 p-4 bg-white/70 shadow-inner relative">
-                {messages.length === 0 && (
-                  <div className="absolute inset-0 pointer-events-none flex flex-col justify-center items-center text-center text-emerald-900 text-xs md:text-sm font-medium space-y-2 opacity-25 select-none">
-                    <p>Example: "What’s the fastest pathway to SBTi alignment for a 50k-tCO₂e portfolio?"</p>
-                    <p>Example: "Compare capex vs opex for electrifying our UK fleet by 2030."</p>
-                    <p>Example: "Give me a circular design strategy for a consumer electronics line."</p>
-                  </div>
-                )}
-                <div className="space-y-4">
-                  {messages.map((m, idx) => (
-                    <div key={idx} className="flex">
-                      <div className={m.role === "user"
-                        ? "ml-auto max-w-[85%] rounded-2xl bg-emerald-700 text-white px-4 py-3 shadow-lg"
-                        : "mr-auto max-w-[85%] rounded-2xl bg-emerald-100 text-emerald-900 px-4 py-3 shadow"}>
-                        <p className="whitespace-pre-wrap leading-relaxed text-sm md:text-[15px]">{m.content}</p>
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              </div>
-
-              <form onSubmit={handleSubmit} className="mt-4 flex gap-3">
-                <textarea
-                  value={input}
-                  onChange={(e) => setInput(e.target.value)}
-                  placeholder="Ask your question here..."
-                  className="flex-1 min-h-[56px] rounded-2xl border border-emerald-300 p-3"
-                  disabled={credits <= 0}
-                />
-                <button type="submit" disabled={isLoading || credits <= 0} className="px-5 py-3 rounded-2xl bg-emerald-700 text-white font-semibold shadow disabled:opacity-60">
-                  {isLoading ? "Thinking…" : credits <= 0 ? "Out of credits" : "Send"}
-                </button>
-              </form>
-              {error && <div className="mt-3 text-sm text-red-600 bg-red-50 border border-red-200 rounded-xl p-3">{error}</div>}
-            </div>
-          </section>
-
-          {/* CAPABILITIES */}
-          <section id="capabilities" className="max-w-6xl mx-auto px-4 py-14">
-            <h3 className="text-2xl font-bold text-white text-center">What you can do with GreenConsultant</h3>
-            <p className="text-emerald-100/90 text-center mt-2">From boardroom strategy to engineering execution—plug in, iterate, and ship.</p>
-            <div className="mt-8 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              {[
-                { title: 'Net-zero strategy', desc: 'SBTi-aligned targets, MAC curves, carbon pricing scenarios.' },
-                { title: 'Product design', desc: 'DfMA, material swaps, lifecycle & recyclability heuristics.' },
-                { title: 'Operations', desc: 'Energy audits, fleet electrification, heat pumps & CHP.' },
-                { title: 'Supply chain', desc: 'Scope 3 mapping, vendor screening, logistics optimization.' },
-                { title: 'Financials', desc: 'Capex/opex trade-offs, IRR/NPV, payback with sensitivity.' },
-                { title: 'Risk & governance', desc: 'Registers, mitigations, KPIs, and program cadences.' }
-              ].map((f, i) => (
-                <div key={i} className="rounded-2xl bg-white/10 backdrop-blur border border-white/20 p-5 text-white shadow">
-                  <div className="text-lg font-semibold">{f.title}</div>
-                  <p className="text-sm text-emerald-100 mt-1">{f.desc}</p>
-                </div>
-              ))}
-            </div>
-          </section>
-
-          {/* TESTIMONIALS */}
-          <section id="testimonials" className="bg-gray-50 text-emerald-950">
-            <div className="max-w-6xl mx-auto px-4 py-14">
-              <h3 className="text-2xl font-bold mb-6">Client Testimonials</h3>
-              <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-                {testimonials.map((t, i) => (
-                  <motion.article key={i} initial={{ opacity: 0, y: 16 }} whileInView={{ opacity: 1, y: 0 }} transition={{ duration: 0.35 }}
-                    className="rounded-2xl border border-emerald-100 bg-white p-5 shadow">
-                    <div className="font-semibold text-emerald-900">{t.name}</div>
-                    <div className="text-sm text-emerald-700/90">{t.role}{t.company ? `, ${t.company}` : ''}</div>
-                    <Stars value={t.rating} />
-                    <p className="mt-3 text-[15px]">“{t.quote}”</p>
-                    <span className="inline-block mt-2 text-xs px-2 py-1 bg-emerald-50 text-emerald-800 rounded-full">{t.metric}</span>
-                  </motion.article>
-                ))}
-              </div>
-            </div>
-          </section>
-
-          {/* SIGNUP MODAL */}
-          <SignupModal
-            open={showSignup}
-            onClose={() => setShowSignup(false)}
-            onSignup={() => { resetCredits(); setShowSignup(false); }}
-            credits={credits}
-          />
-        </div>
-      );
     }
 
-    // Mount
-    ReactDOM.createRoot(document.getElementById("root")).render(<GreenConsultant />);
+    form.addEventListener('submit', (e)=>{
+      e.preventDefault();
+      const q=(input.value||'').trim();
+      if(!q) return;
+      input.value='';
+      streamChat(q);
+    });
+
+    // -------- MODAL --------
+    const openSignup = document.getElementById('openSignup');
+    const signupBtn = document.getElementById('signupBtn');
+    const closeModal = document.getElementById('closeModal');
+
+    function openModal(){ overlay.style.display='flex' }
+    function close(){ overlay.style.display='none' }
+
+    openSignup.addEventListener('click', openModal);
+    closeModal.addEventListener('click', close);
+    signupBtn.addEventListener('click', ()=>{ setCredits(5); close(); });
+
+    // -------- Helpful console breadcrumbs --------
+    console.log("GreenConsultant loaded. Target:", OLLAMA_BASE, "Model:", MODEL);
   </script>
 </body>
 </html>
